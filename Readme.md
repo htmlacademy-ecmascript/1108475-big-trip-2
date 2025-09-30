@@ -1,7 +1,7 @@
 # Проект «Большое путешествие»
 
 * Студент: [Дэвид Слабковский](https://up.htmlacademy.ru/ecmascript-individual/2/user/1108475).
-* Наставник: `Неизвестно`.
+* Наставник: [Евгений Лепёшкин](https://htmlacademy.ru/profile/id144641).
 
 ---
 
