@@ -1,18 +1,18 @@
 import { DateMap, getDateDifference, huminazeDate } from '../util.js';
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 
 
-const createPointTemplate = (point, offers, destination) => {
+const createPointTemplate = (point, checkedOffers, destination) => {
   const {basePrice, isFavorite, type, dateFrom, dateTo } = point;
 
   const favoritePoint = isFavorite
     ? 'event__favorite-btn--active'
     : '';
 
-  const hasOffers = offers.length
+  const hasOffers = checkedOffers.length
     ? `
       <ul class="event__selected-offers">
-        ${offers.map((offer) =>
+        ${checkedOffers.map((offer) =>
     `<li class="event__offer">
               <span class="event__offer-title">${offer.title}</span>
               &plus;&euro;&nbsp;
@@ -60,23 +60,27 @@ const createPointTemplate = (point, offers, destination) => {
   );
 };
 
-export default class PointView {
+export default class PointView extends AbstractView {
+  #point = null;
+  #offers = [];
+  #destination = null;
+  #handleEditButtonClick = null;
 
-  constructor({point, offers, destination}) {
-    this.point = point;
-    this.offers = offers;
-    this.destination = destination;
+  constructor({point, checkedOffers, destination, onEditOpenButtonClick}) {
+    super();
+    this.#point = point;
+    this.#offers = checkedOffers;
+    this.#destination = destination;
+    this.#handleEditButtonClick = onEditOpenButtonClick;
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#editButtonClickHandler);
   }
 
-  createTemplate() {
-    return createPointTemplate(this.point, this.offers, this.destination);
+  get template() {
+    return createPointTemplate(this.#point, this.#offers, this.#destination);
   }
 
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.createTemplate());
-    }
-
-    return this.element;
-  }
+  #editButtonClickHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleEditButtonClick();
+  };
 }
