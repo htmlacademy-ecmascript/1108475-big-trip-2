@@ -1,5 +1,5 @@
 import { DateMap, huminazeDate } from '../util.js';
-import { createElement } from '../render.js';
+import AbstractView from '../framework/view/abstract-view.js';
 import { POINT_TYPES, POINT_DESTINATIONS, OffersMap } from '../const.js';
 
 const createPointOffer = (offer, checkedOffers) => {
@@ -72,7 +72,7 @@ const createPointEditFormTemplate = (point, pointOffers, checkedOffers, destinat
           <div class="event__type-wrapper">
             <label class="event__type  event__type-btn" for="event-type-toggle-${id}">
               <span class="visually-hidden">Choose event type</span>
-              <img class="event__type-icon" width="17" height="17" src="img/icons/${type}.png" alt="Event type icon">
+              <img class="event__type-icon" width="17" height="17" src="img/icons/${type.toLowerCase()}.png" alt="Event type icon">
             </label>
             <input class="event__type-toggle  visually-hidden" id="event-type-toggle-${id}" type="checkbox">
 
@@ -133,24 +133,43 @@ const createPointEditFormTemplate = (point, pointOffers, checkedOffers, destinat
   );
 };
 
-export default class PointEditFormView {
+export default class PointEditFormView extends AbstractView {
+  #point = null;
+  #offers = null;
+  #destination = null;
+  #checkedOffers = [];
+  #handleEditFormSubmit = null;
+  #handleEditCloseButtonClick = null;
+  #editForm = null;
 
-  constructor({point, offers, checkedOffers, destination}) {
-    this.point = point;
-    this.offers = offers;
-    this.checkedOffers = checkedOffers;
-    this.destination = destination;
+  constructor({point, offers, checkedOffers, destination, onEditFormSubmit, onEditCloseButtonClick}) {
+    super();
+    this.#point = point;
+    this.#offers = offers;
+    this.#checkedOffers = checkedOffers;
+    this.#destination = destination;
+    this.#handleEditFormSubmit = onEditFormSubmit;
+    this.#handleEditCloseButtonClick = onEditCloseButtonClick;
+
+    this.#editForm = this.element.querySelector('form');
+    this.#editForm.addEventListener('submit', this.#editFormSubmitHandler);
+    this.element.querySelector('.event__rollup-btn').addEventListener('click', this.#editCloseButtonClickHandler);
   }
 
-  createTemplate() {
-    return createPointEditFormTemplate(this.point, this.offers, this.checkedOffers, this.destination);
+  get template() {
+    return createPointEditFormTemplate(this.#point, this.#offers, this.#checkedOffers, this.#destination);
   }
 
-  getElement() {
-    if (!this.element) {
-      this.element = createElement(this.createTemplate());
-    }
+  resetForm = () => this.#editForm.reset();
 
-    return this.element;
-  }
+  #editFormSubmitHandler = (evt) => {
+    evt.preventDefault();
+    this.#handleEditFormSubmit();
+  };
+
+  #editCloseButtonClickHandler = (evt) => {
+    evt.preventDefault();
+    this.resetForm();
+    this.#handleEditCloseButtonClick();
+  };
 }
