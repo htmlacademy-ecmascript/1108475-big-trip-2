@@ -1,6 +1,8 @@
 import { render, replace } from '../framework/render.js';
+import { FilterType } from '../const.js';
 import SortingView from '../view/sorting-view.js';
 import PointsListView from '../view/points-list-view.js';
+import PointsEmptyListView from '../view/points-empty-list-view.js';
 import PointView from '../view/point-view.js';
 import PointEditFormView from '../view/point-edit-form-view.js';
 
@@ -27,6 +29,12 @@ export default class Presenter {
   }
 
   #renderBoard() {
+
+    if(!this.#points.length) {
+      render(new PointsEmptyListView(FilterType.EVERYTHING), this.#container);
+      return;
+    }
+
     render(this.#sortingComponent, this.#container);
     render(this.#pointsListComponent, this.#container);
 

@@ -12,6 +12,13 @@ const OffersMap = new Map([
   ['Travel by train', 'train'],
 ]);
 
+const FilterType = {
+  EVERYTHING: 'everything',
+  FUTURE: 'future',
+  PRESENT: 'present',
+  PAST: 'past',
+};
+
 const POINT_DESCRIPTIONS = [
   'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
   'Cras aliquet varius magna, non porta ligula feugiat eget.',
@@ -25,4 +32,4 @@ const POINT_DESCRIPTIONS = [
   'In rutrum ac purus sit amet tempus.'
 ];
 
-export {POINT_TYPES, POINT_DESTINATIONS, POINT_OFFERS, POINT_DESCRIPTIONS, OffersMap };
+export { POINT_TYPES, POINT_DESTINATIONS, POINT_OFFERS, POINT_DESCRIPTIONS, OffersMap, FilterType };
