@@ -1,12 +1,34 @@
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import isBetween from 'dayjs/plugin/isBetween';
+import { FilterType } from './const.js';
 
 dayjs.extend(utc);
+dayjs.extend(isBetween);
 
 const DateMap = new Map([
   ['MonthDay', 'MMM D'],
   ['DayMonthYear', 'DD/MM/YY'],
   ['HoursMinutes', 'HH:mm']
+]);
+
+const FiltersMap = new Map([
+  [FilterType.EVERYTHING, {
+    filterPoints: (points) => points,
+    empty: 'Click New Event to create your first point',
+  }],
+  [FilterType.FUTURE, {
+    filterPoints: (points) => points.filter((point) => dayjs(point.dateFrom).isAfter(dayjs())),
+    empty: 'There are no future events now',
+  }],
+  [FilterType.PRESENT, {
+    filterPoints: (points) => points.filter((point) => dayjs().isBetween(point.dateFrom, point.dateTo, null, [])),
+    empty: 'There are no present events now',
+  }],
+  [FilterType.PAST, {
+    filterPoints: (points) => points.filter((point) => dayjs(point.dateTo).isBefore(dayjs())),
+    empty: 'There are no past events now',
+  }]
 ]);
 
 const huminazeDate = (date, format) => date ? dayjs(date).utc().format(format) : '';
@@ -31,4 +53,4 @@ const getRandomInteger = (min, max) => Math.floor(Math.random() * (Math.floor(ma
 
 const getRandomArrElem = (array) => array[Math.floor(Math.random() * array.length)];
 
-export { getRandomArrElem, getRandomInteger, DateMap, getDateDifference, huminazeDate };
+export { getRandomArrElem, getRandomInteger, DateMap, FiltersMap, getDateDifference, huminazeDate };
