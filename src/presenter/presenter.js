@@ -1,10 +1,9 @@
-import { render, replace } from '../framework/render.js';
+import { render } from '../framework/render.js';
 import { FilterType } from '../const.js';
 import SortingView from '../view/sorting-view.js';
 import PointsListView from '../view/points-list-view.js';
 import PointsEmptyListView from '../view/points-empty-list-view.js';
-import PointView from '../view/point-view.js';
-import PointEditFormView from '../view/point-edit-form-view.js';
+import PointPresenter from './point-presenter.js';
 
 export default class Presenter {
   #sortingComponent = new SortingView();
@@ -14,6 +13,7 @@ export default class Presenter {
   #offersModel = null;
   #destinationsModel = null;
   #points = [];
+  #pointPresenters = new Map();
 
   constructor(container, pointsModel, offersModel, destinationsModel) {
     this.#container = container;
@@ -48,37 +48,20 @@ export default class Presenter {
     }
   }
 
+  #handlePointChange = (updatedPoint) => {
+    this.#points = this.#points.map((point) => point.id === updatedPoint.id ? updatedPoint : point);
+    this.#pointPresenters.get(updatedPoint.id).init(updatedPoint);
+  };
+
+  #resetPointsEditing = () => {
+    this.#pointPresenters.forEach((presenter) => presenter.resetEditing());
+  };
+
   #renderPoint({point, offers, checkedOffers, destination}) {
 
-    const pointComponent = new PointView({
-      point, checkedOffers, destination,
-      onEditOpenButtonClick: () => openEditForm()
-    });
+    const pointPresenter = new PointPresenter(this.#pointsListComponent.element, this.#handlePointChange, this.#resetPointsEditing, offers, checkedOffers, destination);
 
-    const editFormComponent = new PointEditFormView({
-      point, offers, checkedOffers, destination,
-      onEditFormSubmit: () => closeEditForm(),
-      onEditCloseButtonClick: () => closeEditForm()
-    });
-
-    function onDocumentKeydown (evt) {
-      if (evt.key === 'Escape') {
-        evt.preventDefault();
-        editFormComponent.resetForm();
-        closeEditForm();
-      }
-    }
-
-    function openEditForm () {
-      replace(editFormComponent, pointComponent);
-      document.addEventListener('keydown', onDocumentKeydown);
-    }
-
-    function closeEditForm () {
-      replace(pointComponent, editFormComponent);
-      document.removeEventListener('keydown', onDocumentKeydown);
-    }
-
-    render(pointComponent, this.#pointsListComponent.element);
+    pointPresenter.init(point);
+    this.#pointPresenters.set(point.id, pointPresenter);
   }
 }
