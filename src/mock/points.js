@@ -55,6 +55,14 @@ const mockPoints = [
   },
 ];
 
-const getRandomPoint = () => getRandomArrElem(mockPoints);
+const getRandomPoints = () => {
+  const points = new Set();
+  while (points.size < 5) {
+    const randomPoint = getRandomArrElem(mockPoints);
+    points.add(randomPoint);
+  }
 
-export {getRandomPoint};
+  return [...points];
+};
+
+export {getRandomPoints};
