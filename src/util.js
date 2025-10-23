@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
 import isBetween from 'dayjs/plugin/isBetween';
-import { FilterType } from './const.js';
+import { FilterType, SortingType } from './const.js';
 
 dayjs.extend(utc);
 dayjs.extend(isBetween);
@@ -31,6 +31,15 @@ const FiltersMap = new Map([
   }]
 ]);
 
+const SortingMap = new Map([
+  [SortingType.DAY,
+    (points) => points.sort((point, nextPoint) => dayjs(point.dateFrom) - dayjs(nextPoint.dateFrom))],
+  [SortingType.TIME,
+    (points) => points.sort((point, nextPoint) => (dayjs(nextPoint.dateTo).diff(dayjs(nextPoint.dateFrom))) - (dayjs(point.dateTo).diff(dayjs(point.dateFrom))))],
+  [SortingType.PRICE,
+    (points) => points.sort((point, nextPoint) => nextPoint.basePrice - point.basePrice)],
+]);
+
 const huminazeDate = (date, format) => date ? dayjs(date).utc().format(format) : '';
 const getDateDifference = (start, end) => {
   const diff = new Date(end) - new Date(start);
@@ -53,4 +62,4 @@ const getRandomInteger = (min, max) => Math.floor(Math.random() * (Math.floor(ma
 
 const getRandomArrElem = (array) => array[Math.floor(Math.random() * array.length)];
 
-export { getRandomArrElem, getRandomInteger, DateMap, FiltersMap, getDateDifference, huminazeDate };
+export { getRandomArrElem, getRandomInteger, DateMap, FiltersMap, SortingMap, getDateDifference, huminazeDate };

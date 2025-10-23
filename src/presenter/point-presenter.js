@@ -67,6 +67,11 @@ export default class PointPresenter {
     remove(previousEditFormComponent);
   }
 
+  clear() {
+    remove(this.#pointComponent);
+    remove(this.#editFormComponent);
+  }
+
   #openEditForm() {
     this.#isEditing = true;
     replace(this.#editFormComponent, this.#pointComponent);
