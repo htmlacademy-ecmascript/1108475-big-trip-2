@@ -1,11 +1,12 @@
 import AbstractView from '../framework/view/abstract-view.js';
+import { SortingType } from '../const.js';
 
 
 const createSortingTemplate = () =>
   `
   <form class="trip-events__trip-sort  trip-sort" action="#" method="get">
     <div class="trip-sort__item  trip-sort__item--day">
-      <input id="sort-day" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="sort-day" checked>
+      <input id="sort-day" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="${SortingType.DAY}" checked>
         <label class="trip-sort__btn" for="sort-day">Day</label>
     </div>
 
@@ -15,12 +16,12 @@ const createSortingTemplate = () =>
     </div>
 
     <div class="trip-sort__item  trip-sort__item--time">
-      <input id="sort-time" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="sort-time">
+      <input id="sort-time" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="${SortingType.TIME}">
         <label class="trip-sort__btn" for="sort-time">Time</label>
     </div>
 
     <div class="trip-sort__item  trip-sort__item--price">
-      <input id="sort-price" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="sort-price">
+      <input id="sort-price" class="trip-sort__input  visually-hidden" type="radio" name="trip-sort" value="${SortingType.PRICE}">
         <label class="trip-sort__btn" for="sort-price">Price</label>
     </div>
 
@@ -32,7 +33,20 @@ const createSortingTemplate = () =>
   `;
 
 export default class SortingView extends AbstractView {
+  #handleSortingChange = null;
+
+  constructor(onSortingChange) {
+    super();
+    this.#handleSortingChange = onSortingChange;
+    this.element.addEventListener('change', this.#sortingChangeHandler);
+  }
+
   get template() {
     return createSortingTemplate();
   }
+
+  #sortingChangeHandler = (evt) => {
+    const activeSorting = evt.currentTarget[evt.target.name].value;
+    this.#handleSortingChange(activeSorting);
+  };
 }

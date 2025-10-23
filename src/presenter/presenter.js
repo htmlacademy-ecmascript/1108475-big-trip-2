@@ -1,19 +1,22 @@
 import { render } from '../framework/render.js';
-import { FilterType } from '../const.js';
+import { FilterType, SortingType } from '../const.js';
+import { SortingMap } from '../util.js';
 import SortingView from '../view/sorting-view.js';
 import PointsListView from '../view/points-list-view.js';
 import PointsEmptyListView from '../view/points-empty-list-view.js';
 import PointPresenter from './point-presenter.js';
 
 export default class Presenter {
-  #sortingComponent = new SortingView();
-  #pointsListComponent = new PointsListView();
   #container = null;
   #pointsModel = null;
   #offersModel = null;
   #destinationsModel = null;
+  #boardPoints = [];
   #points = [];
   #pointPresenters = new Map();
+  #sortComponent = null;
+  #pointsListComponent = null;
+  #sorting = SortingType.DAY;
 
   constructor(container, pointsModel, offersModel, destinationsModel) {
     this.#container = container;
@@ -23,38 +26,59 @@ export default class Presenter {
   }
 
   init() {
-    this.#points = [...this.#pointsModel.points];
+    this.#boardPoints = [...this.#pointsModel.points];
+    this.#points = this.#boardPoints.slice();
 
     this.#renderBoard();
   }
 
   #renderBoard() {
 
-    if(!this.#points.length) {
+    if (!this.#boardPoints.length) {
       render(new PointsEmptyListView(FilterType.EVERYTHING), this.#container);
       return;
     }
 
-    render(this.#sortingComponent, this.#container);
-    render(this.#pointsListComponent, this.#container);
-
-    for (let i = 0; i < this.#points.length; i++) {
-      this.#renderPoint({
-        point: this.#points[i],
-        offers: this.#offersModel.getOffersByType(this.#points[i].type),
-        checkedOffers: [...this.#offersModel.getOffersById(this.#points[i].type, this.#points[i].offers)],
-        destination: this.#destinationsModel.getDestinationById(this.#points[i].destination)
-      });
-    }
+    this.#renderSort();
+    this.#renderPointsList();
+    this.#renderPoints(SortingMap.get(this.#sorting)(this.#points));
   }
 
   #handlePointChange = (updatedPoint) => {
+    this.#boardPoints = this.#boardPoints.map((point) => point.id === updatedPoint.id ? updatedPoint : point);
     this.#points = this.#points.map((point) => point.id === updatedPoint.id ? updatedPoint : point);
     this.#pointPresenters.get(updatedPoint.id).init(updatedPoint);
   };
 
+  #onSortingChange = (sortingType) => {
+    this.#pointPresenters.forEach((presenter) => presenter.clear());
+    this.#sorting = sortingType;
+    this.#renderPoints(SortingMap.get(sortingType)(this.#points));
+  };
+
   #resetPointsEditing = () => {
     this.#pointPresenters.forEach((presenter) => presenter.resetEditing());
+  };
+
+  #renderSort() {
+    this.#sortComponent = new SortingView(this.#onSortingChange);
+    render(this.#sortComponent, this.#container);
+  }
+
+  #renderPointsList() {
+    this.#pointsListComponent = new PointsListView();
+    render(this.#pointsListComponent, this.#container);
+  }
+
+  #renderPoints = (points) => {
+    for (let i = 0; i < points.length; i++) {
+      this.#renderPoint({
+        point: points[i],
+        offers: this.#offersModel.getOffersByType(points[i].type),
+        checkedOffers: [...this.#offersModel.getOffersById(points[i].type, points[i].offers)],
+        destination: this.#destinationsModel.getDestinationById(points[i].destination)
+      });
+    }
   };
 
   #renderPoint({point, offers, checkedOffers, destination}) {

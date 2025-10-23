@@ -37,7 +37,7 @@ const mockPoints = [
     id: '4',
     basePrice: getRandomInteger(50, 1000),
     dateFrom: '2025-09-14T08:30:41.753Z',
-    dateTo: '2025-12-16T09:42:25.602Z',
+    dateTo: '2025-11-22T09:42:25.602Z',
     destination: mockDestinations[3].id,
     isFavorite: false,
     type: mockOffers[3].type,
