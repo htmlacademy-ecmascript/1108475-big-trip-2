@@ -4,6 +4,13 @@ const POINT_DESTINATIONS = ['Amsterdam', 'Chamonix', 'Geneva', 'Paris', 'Berlin'
 
 const POINT_OFFERS = ['Add luggage', 'Switch to comfort', 'Add meal', 'Choose seats', 'Travel by train'];
 
+const BLANK_DESTINATION = {
+  id: '',
+  name: '',
+  description: '',
+  pictures: []
+};
+
 const OffersMap = new Map([
   ['Add luggage', 'luggage'],
   ['Switch to comfort', 'comfort'],
@@ -38,4 +45,4 @@ const POINT_DESCRIPTIONS = [
   'In rutrum ac purus sit amet tempus.'
 ];
 
-export { POINT_TYPES, POINT_DESTINATIONS, POINT_OFFERS, POINT_DESCRIPTIONS, OffersMap, FilterType, SortingType };
+export { POINT_TYPES, POINT_DESTINATIONS, POINT_OFFERS, POINT_DESCRIPTIONS, BLANK_DESTINATION, OffersMap, FilterType, SortingType };

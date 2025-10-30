@@ -11,7 +11,7 @@ export default class OffersModel {
   getOffersByType(type) {
     const allOffers = this.offers;
 
-    return allOffers.find((offer) => offer.type === type);
+    return allOffers.find((offer) => offer.type.toLowerCase() === type.toLowerCase());
   }
 
   getOffersById(type, offersIds) {
