@@ -99,7 +99,7 @@ const createPointEditFormTemplate = (data) => {
             <label class="event__label  event__type-output" for="event-destination-${id}">
               ${type}
             </label>
-            <input class="event__input  event__input--destination" id="event-destination-${id}" type="text" name="event-destination" value="${name ? name : ''}" list="destination-list-${id}">
+            <input class="event__input  event__input--destination" id="event-destination-${id}" type="text" name="event-destination" value="${name}" list="destination-list-${id}">
             <datalist id="destination-list-${id}">
               ${createPointDestinations()}
             </datalist>
@@ -118,7 +118,7 @@ const createPointEditFormTemplate = (data) => {
               <span class="visually-hidden">Price</span>
               &euro;
             </label>
-            <input class="event__input  event__input--price" id="event-price-${id}" type="text" name="event-price" value="${basePrice}">
+            <input class="event__input  event__input--price" id="event-price-${id}" type="number" min="0" max="1000" name="event-price" value="${basePrice}">
           </div>
 
           <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
@@ -210,7 +210,7 @@ export default class PointEditFormView extends AbstractStatefulView {
     if (selectedDestination) {
       this.updateElement({
         destination: selectedDestination.id,
-        destinationData: {
+        destinationInfo: {
           name: selectedDestination.name,
           description: selectedDestination.description,
           pictures: selectedDestination.pictures
@@ -219,7 +219,7 @@ export default class PointEditFormView extends AbstractStatefulView {
     } else {
       this.updateElement({
         destination: '',
-        destinationData: BLANK_DESTINATION
+        destinationInfo: BLANK_DESTINATION
       });
     }
   };
@@ -257,7 +257,7 @@ export default class PointEditFormView extends AbstractStatefulView {
 
     delete point.offersByType;
     delete point.checkedOffers;
-    delete point.destinationData;
+    delete point.destinationInfo;
 
     return point;
   }
