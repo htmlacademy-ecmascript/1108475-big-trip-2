@@ -13,6 +13,8 @@ export default class Presenter {
   #destinationsModel = null;
   #boardPoints = [];
   #points = [];
+  #allOffers = null;
+  #allDestinations = null;
   #pointPresenters = new Map();
   #sortComponent = null;
   #pointsListComponent = null;
@@ -28,6 +30,9 @@ export default class Presenter {
   init() {
     this.#boardPoints = [...this.#pointsModel.points];
     this.#points = this.#boardPoints.slice();
+
+    this.#allOffers = [...this.#offersModel.offers];
+    this.#allDestinations = [...this.#destinationsModel.destinations];
 
     this.#renderBoard();
   }
@@ -47,13 +52,23 @@ export default class Presenter {
   #handlePointChange = (updatedPoint) => {
     this.#boardPoints = this.#boardPoints.map((point) => point.id === updatedPoint.id ? updatedPoint : point);
     this.#points = this.#points.map((point) => point.id === updatedPoint.id ? updatedPoint : point);
-    this.#pointPresenters.get(updatedPoint.id).init(updatedPoint);
+    this.#pointPresenters.get(updatedPoint.id).init({
+      point: updatedPoint,
+      offers: this.#offersModel.getOffersByType(updatedPoint.type),
+      checkedOffers: [...this.#offersModel.getOffersById(updatedPoint.type, updatedPoint.offers)],
+      destination: this.#destinationsModel.getDestinationById(updatedPoint.destination)
+    });
   };
 
   #onSortingChange = (sortingType) => {
-    this.#pointPresenters.forEach((presenter) => presenter.clear());
     this.#sorting = sortingType;
-    this.#renderPoints(SortingMap.get(sortingType)(this.#points));
+    this.#sortPoints();
+  };
+
+  #sortPoints = () => {
+    this.#pointPresenters.forEach((presenter) => presenter.clear());
+    this.#pointPresenters.clear();
+    this.#renderPoints(SortingMap.get(this.#sorting)(this.#points));
   };
 
   #resetPointsEditing = () => {
@@ -83,9 +98,9 @@ export default class Presenter {
 
   #renderPoint({point, offers, checkedOffers, destination}) {
 
-    const pointPresenter = new PointPresenter(this.#pointsListComponent.element, this.#handlePointChange, this.#resetPointsEditing, offers, checkedOffers, destination);
+    const pointPresenter = new PointPresenter(this.#pointsListComponent.element, this.#handlePointChange, this.#resetPointsEditing, this.#sortPoints, this.#allOffers, this.#allDestinations);
 
-    pointPresenter.init(point);
+    pointPresenter.init({point, offers, checkedOffers, destination});
     this.#pointPresenters.set(point.id, pointPresenter);
   }
 }

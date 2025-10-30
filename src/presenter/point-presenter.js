@@ -6,26 +6,32 @@ export default class PointPresenter {
   #pointComponent = null;
   #editFormComponent = null;
   #pointsListContainer = null;
+  #allOffers = null;
+  #allDestinations = null;
   #point = null;
   #pointOffers = null;
   #pointCheckedOffers = null;
   #pointDestination = null;
   #onPointChange = null;
   #resetPointsEditing = null;
+  #sortPoints = null;
   #isEditing = false;
 
-  constructor(container, handlePointChange, resetPointsEditing, offers, checkedOffers, destination) {
+  constructor(container, handlePointChange, resetPointsEditing, sortPoints, allOffers, allDestinations) {
     this.#pointsListContainer = container;
+    this.#allOffers = allOffers;
+    this.#allDestinations = allDestinations;
+    this.#onPointChange = handlePointChange;
+    this.#resetPointsEditing = resetPointsEditing;
+    this.#sortPoints = sortPoints;
+  }
+
+  init({point, offers, checkedOffers, destination}) {
+
+    this.#point = point;
     this.#pointOffers = offers;
     this.#pointCheckedOffers = checkedOffers;
     this.#pointDestination = destination;
-    this.#onPointChange = handlePointChange;
-    this.#resetPointsEditing = resetPointsEditing;
-  }
-
-  init(point) {
-
-    this.#point = point;
 
     const previousPointComponent = this.#pointComponent;
     const previousEditFormComponent = this.#editFormComponent;
@@ -42,11 +48,13 @@ export default class PointPresenter {
     });
 
     this.#editFormComponent = new PointEditFormView({
+      allOffers: this.#allOffers,
+      allDestinations: this.#allDestinations,
       point: this.#point,
       offers: this.#pointOffers,
       checkedOffers: this.#pointCheckedOffers,
       destination: this.#pointDestination,
-      onEditFormSubmit: () => this.#closeEditForm(),
+      onEditFormSubmit: this.#handleEditFormSubmit,
       onEditCloseButtonClick: () => this.#closeEditForm()
     });
 
@@ -84,12 +92,19 @@ export default class PointPresenter {
     document.removeEventListener('keydown', this.#documentKeydownHandler);
   }
 
+  #handleEditFormSubmit = (point) => {
+    this.#onPointChange(point);
+    this.#closeEditForm();
+    this.#sortPoints();
+  };
+
   #handleFavoriteChange = () => {
     this.#onPointChange({ ...this.#point, isFavorite: !this.#point.isFavorite});
   };
 
   resetEditing() {
     if (this.#isEditing === true) {
+      this.#editFormComponent.reset(this.#point, this.#pointOffers, this.#pointCheckedOffers, this.#pointDestination);
       this.#closeEditForm();
     }
   }
@@ -98,7 +113,7 @@ export default class PointPresenter {
   #documentKeydownHandler = (evt) => {
     if (evt.key === 'Escape') {
       evt.preventDefault();
-      this.#editFormComponent.resetForm();
+      this.#editFormComponent.reset(this.#point, this.#pointOffers, this.#pointCheckedOffers, this.#pointDestination);
       this.#closeEditForm();
     }
   };

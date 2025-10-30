@@ -3,7 +3,7 @@ import { getRandomArrElem, getRandomInteger } from '../util.js';
 
 
 const mockOffers = Array.from({ length: POINT_TYPES.length }, (_, i) => ({
-  type: getRandomArrElem(POINT_TYPES),
+  type: POINT_TYPES[i],
   offers: Array.from({ length: getRandomInteger(0, POINT_OFFERS.length) }, (v, n) => ({
     id: `${100 * (i + 1) + n}`,
     title: POINT_OFFERS[n],

@@ -1,5 +1,5 @@
 import { mockDestinations } from '../mock/destinations.js';
-
+import { BLANK_DESTINATION } from '../const.js';
 
 export default class DestinationsModel {
   #destinations = mockDestinations;
@@ -10,7 +10,8 @@ export default class DestinationsModel {
 
   getDestinationById(id) {
     const allDestinations = this.destinations;
+    const destinationById = allDestinations.find((destination) => destination.id === id);
 
-    return allDestinations.find((destination) => destination.id === id);
+    return destinationById ?? BLANK_DESTINATION;
   }
 }
