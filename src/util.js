@@ -1,10 +1,10 @@
 import dayjs from 'dayjs';
-import utc from 'dayjs/plugin/utc';
 import isBetween from 'dayjs/plugin/isBetween';
+import duration from 'dayjs/plugin/duration';
 import { FilterType, SortingType } from './const.js';
 
-dayjs.extend(utc);
 dayjs.extend(isBetween);
+dayjs.extend(duration);
 
 const DateMap = new Map([
   ['MonthDay', 'MMM D'],
@@ -40,22 +40,37 @@ const SortingMap = new Map([
     (points) => points.sort((point, nextPoint) => nextPoint.basePrice - point.basePrice)],
 ]);
 
-const huminazeDate = (date, format) => date ? dayjs(date).utc().format(format) : '';
+const huminazeDate = (date, format) => date ? dayjs(date).format(format) : '';
+
+const getDateDifferenceString = (totalDays, totalHours, totalMinutes) => {
+  if (!totalDays && !totalHours && !totalMinutes) {
+    return '';
+  }
+
+  const minutes = totalMinutes > 9 ? `${totalMinutes}M` : `0${totalMinutes}M`;
+
+  if (!totalDays && !totalHours) {
+    return `${minutes}`;
+  }
+
+  const hours = totalHours > 9 ? `${totalHours}H` : `0${totalHours}H`;
+
+  if(!totalDays) {
+    return `${hours} ${minutes}`;
+  }
+
+  const days = totalDays > 9 ? `${totalDays}D` : `0${totalDays}D`;
+
+  return `${days} ${hours} ${minutes}`;
+};
+
 const getDateDifference = (start, end) => {
-  const diff = new Date(end) - new Date(start);
-  const totalDays = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const totalHours = Math.floor(diff / (1000 * 60 * 60)) % 24;
-  const totalMinutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+  const diff = dayjs(end).diff(dayjs(start));
+  const totalDays = Math.floor(dayjs.duration(diff).asDays());
+  const totalHours = Math.floor(dayjs.duration(diff).asHours()) % 24;
+  const totalMinutes = Math.round(dayjs.duration(diff).asMinutes()) % 60;
 
-  if (totalDays > 0) {
-
-    return `${totalDays}D ${totalHours}H ${totalMinutes}M`;
-  }
-
-  if (totalHours > 0) {
-    return `${totalHours}H ${totalMinutes}M`;
-  }
-  return `${totalMinutes}M`;
+  return getDateDifferenceString(totalDays, totalHours, totalMinutes);
 };
 
 const getRandomInteger = (min, max) => Math.floor(Math.random() * (Math.floor(max) - Math.ceil(min) + 1) + Math.ceil(min));
