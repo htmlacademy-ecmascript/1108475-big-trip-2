@@ -4,6 +4,17 @@ const POINT_DESTINATIONS = ['Amsterdam', 'Chamonix', 'Geneva', 'Paris', 'Berlin'
 
 const POINT_OFFERS = ['Add luggage', 'Switch to comfort', 'Add meal', 'Choose seats', 'Travel by train'];
 
+const BLANK_POINT = {
+  id: '',
+  basePrice: 0,
+  dateFrom: '',
+  dateTo: '',
+  destination: '',
+  isFavorite: false,
+  type: 'flight',
+  offers: []
+};
+
 const BLANK_DESTINATION = {
   id: '',
   name: '',
@@ -45,4 +56,16 @@ const POINT_DESCRIPTIONS = [
   'In rutrum ac purus sit amet tempus.'
 ];
 
-export { POINT_TYPES, POINT_DESTINATIONS, POINT_OFFERS, POINT_DESCRIPTIONS, BLANK_DESTINATION, OffersMap, FilterType, SortingType };
+const UserAction = {
+  UPDATE_POINT: 'UPDATE_POINT',
+  ADD_POINT: 'ADD_POINT',
+  DELETE_POINT: 'DELETE_POINT',
+};
+
+const UpdateType = {
+  PATCH: 'PATCH',
+  MINOR: 'MINOR',
+  MAJOR: 'MAJOR',
+};
+
+export { POINT_TYPES, POINT_DESTINATIONS, POINT_OFFERS, POINT_DESCRIPTIONS, BLANK_POINT, BLANK_DESTINATION, OffersMap, FilterType, SortingType, UserAction, UpdateType };
