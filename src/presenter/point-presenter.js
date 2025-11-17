@@ -1,6 +1,8 @@
 import { render, replace, remove } from '../framework/render.js';
 import PointView from '../view/point-view.js';
 import PointEditFormView from '../view/point-edit-form-view.js';
+import { UserAction, UpdateType, BLANK_DESTINATION } from '../const.js';
+import { areDatesEqual } from '../util.js';
 
 export default class PointPresenter {
   #pointComponent = null;
@@ -14,24 +16,35 @@ export default class PointPresenter {
   #pointDestination = null;
   #onPointChange = null;
   #resetPointsEditing = null;
-  #sortPoints = null;
   #isEditing = false;
 
-  constructor(container, handlePointChange, resetPointsEditing, sortPoints, allOffers, allDestinations) {
+  constructor(container, handlePointChange, resetPointsEditing, allOffers, allDestinations) {
     this.#pointsListContainer = container;
     this.#allOffers = allOffers;
     this.#allDestinations = allDestinations;
     this.#onPointChange = handlePointChange;
     this.#resetPointsEditing = resetPointsEditing;
-    this.#sortPoints = sortPoints;
   }
 
-  init({point, offers, checkedOffers, destination}) {
+  get pointOffers() {
+    return this.#allOffers.find((offer) => offer.type.toLowerCase() === this.#point.type.toLowerCase()).offers;
+  }
+
+  get checkedOffers() {
+    return this.pointOffers.filter((offer) => this.#point.offers.find((id) => offer.id === id));
+  }
+
+  get destination() {
+    return this.#allDestinations.find((destination) => destination.id === this.#point.destination) ?? BLANK_DESTINATION;
+  }
+
+  init(point) {
 
     this.#point = point;
-    this.#pointOffers = offers;
-    this.#pointCheckedOffers = checkedOffers;
-    this.#pointDestination = destination;
+
+    this.#pointOffers = this.pointOffers;
+    this.#pointCheckedOffers = this.checkedOffers;
+    this.#pointDestination = this.destination;
 
     const previousPointComponent = this.#pointComponent;
     const previousEditFormComponent = this.#editFormComponent;
@@ -40,11 +53,8 @@ export default class PointPresenter {
       point: this.#point,
       checkedOffers: this.#pointCheckedOffers,
       destination: this.#pointDestination,
-      onEditOpenButtonClick: () => {
-        this.#resetPointsEditing();
-        this.#openEditForm();
-      },
-      onFavoriteButtonClick: () => this.#handleFavoriteChange()
+      onEditOpenButtonClick: this.#handleEditClick,
+      onFavoriteButtonClick: this.#handleFavoriteChange
     });
 
     this.#editFormComponent = new PointEditFormView({
@@ -55,7 +65,8 @@ export default class PointPresenter {
       checkedOffers: this.#pointCheckedOffers,
       destination: this.#pointDestination,
       onEditFormSubmit: this.#handleEditFormSubmit,
-      onEditCloseButtonClick: () => this.#closeEditForm()
+      onEditCloseButtonClick: this.#handleEditCloseClick,
+      onEditDeleteButtonClick: this.#handleDeleteClick
     });
 
     if (previousPointComponent === null || previousEditFormComponent === null) {
@@ -92,19 +103,49 @@ export default class PointPresenter {
     document.removeEventListener('keydown', this.#documentKeydownHandler);
   }
 
-  #handleEditFormSubmit = (point) => {
-    this.#onPointChange(point);
+  #handleEditClick = () => {
+    this.#resetPointsEditing();
+    this.#openEditForm();
+  };
+
+  #handleEditCloseClick = () => {
     this.#closeEditForm();
-    this.#sortPoints();
+  };
+
+  #handleEditFormSubmit = (update) => {
+    const isMinorUpdate =
+      !areDatesEqual(this.#point.dateFrom, update.dateFrom) ||
+      !areDatesEqual(this.#point.dateTo, update.dateTo) ||
+      this.#point.basePrice !== update.basePrice;
+
+    this.#onPointChange(
+      UserAction.UPDATE_POINT,
+      isMinorUpdate ? UpdateType.MINOR : UpdateType.PATCH,
+      update,
+    );
+    this.#closeEditForm();
+  };
+
+  #handleDeleteClick = (point) => {
+    document.removeEventListener('keydown', this.#documentKeydownHandler);
+    this.#onPointChange(
+      UserAction.DELETE_POINT,
+      UpdateType.MINOR,
+      point,
+    );
   };
 
   #handleFavoriteChange = () => {
-    this.#onPointChange({ ...this.#point, isFavorite: !this.#point.isFavorite});
+    this.#onPointChange(
+      UserAction.UPDATE_POINT,
+      UpdateType.PATCH,
+      {...this.#point, isFavorite: !this.#point.isFavorite},
+    );
   };
 
   resetEditing() {
     if (this.#isEditing === true) {
-      this.#editFormComponent.reset(this.#point, this.#pointOffers, this.#pointCheckedOffers, this.#pointDestination);
+      this.#editFormComponent.reset();
       this.#closeEditForm();
     }
   }
@@ -113,7 +154,7 @@ export default class PointPresenter {
   #documentKeydownHandler = (evt) => {
     if (evt.key === 'Escape') {
       evt.preventDefault();
-      this.#editFormComponent.reset(this.#point, this.#pointOffers, this.#pointCheckedOffers, this.#pointDestination);
+      this.#editFormComponent.reset();
       this.#closeEditForm();
     }
   };

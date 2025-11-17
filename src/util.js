@@ -9,7 +9,8 @@ dayjs.extend(duration);
 const DateMap = new Map([
   ['MonthDay', 'MMM D'],
   ['DayMonthYear', 'DD/MM/YY'],
-  ['HoursMinutes', 'HH:mm']
+  ['HoursMinutes', 'HH:mm'],
+  ['DayMonthYear HoursMinutes', 'DD/MM/YY HH:mm']
 ]);
 
 const FiltersMap = new Map([
@@ -41,6 +42,8 @@ const SortingMap = new Map([
 ]);
 
 const huminazeDate = (date, format) => date ? dayjs(date).format(format) : '';
+
+const areDatesEqual = (dateA, dateB) => (dateA === null && dateB === null) || dayjs(dateA).isSame(dateB);
 
 const getDateDifferenceString = (totalDays, totalHours, totalMinutes) => {
   if (!totalDays && !totalHours && !totalMinutes) {
@@ -77,4 +80,4 @@ const getRandomInteger = (min, max) => Math.floor(Math.random() * (Math.floor(ma
 
 const getRandomArrElem = (array) => array[Math.floor(Math.random() * array.length)];
 
-export { getRandomArrElem, getRandomInteger, DateMap, FiltersMap, SortingMap, getDateDifference, huminazeDate };
+export { getRandomArrElem, getRandomInteger, DateMap, FiltersMap, SortingMap, areDatesEqual, getDateDifference, huminazeDate };

@@ -7,16 +7,4 @@ export default class OffersModel {
   get offers() {
     return this.#offers;
   }
-
-  getOffersByType(type) {
-    const allOffers = this.offers;
-
-    return allOffers.find((offer) => offer.type.toLowerCase() === type.toLowerCase());
-  }
-
-  getOffersById(type, offersIds) {
-    const offersByType = this.getOffersByType(type);
-
-    return offersByType.offers.filter((offer) => offersIds.find((id) => offer.id === id));
-  }
 }
