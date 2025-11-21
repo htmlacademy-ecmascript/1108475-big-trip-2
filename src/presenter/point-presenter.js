@@ -1,7 +1,7 @@
 import { render, replace, remove } from '../framework/render.js';
 import PointView from '../view/point-view.js';
 import PointEditFormView from '../view/point-edit-form-view.js';
-import { UserAction, UpdateType, BLANK_DESTINATION } from '../const.js';
+import { UserAction, UpdateType } from '../const.js';
 import { areDatesEqual } from '../util.js';
 
 export default class PointPresenter {
@@ -27,15 +27,15 @@ export default class PointPresenter {
   }
 
   get pointOffers() {
-    return this.#allOffers.find((offer) => offer.type.toLowerCase() === this.#point.type.toLowerCase()).offers;
+    return this.#allOffers.find((offer) => offer.type === this.#point.type).offers;
   }
 
   get checkedOffers() {
-    return this.pointOffers.filter((offer) => this.#point.offers.find((id) => offer.id === id));
+    return this.#pointOffers.filter((offer) => this.#point.offers.find((id) => offer.id === id));
   }
 
   get destination() {
-    return this.#allDestinations.find((destination) => destination.id === this.#point.destination) ?? BLANK_DESTINATION;
+    return this.#allDestinations.find((destination) => destination.id === this.#point.destination);
   }
 
   init(point) {

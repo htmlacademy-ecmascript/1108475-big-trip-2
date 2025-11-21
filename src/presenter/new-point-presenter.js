@@ -32,7 +32,7 @@ export default class NewPointPresenter {
       allOffers: this.#allOffers,
       allDestinations: this.#allDestinations,
       point: this.#point,
-      offers: this.#allOffers.find((offer) => offer.type.toLowerCase() === this.#point.type.toLowerCase()).offers,
+      offers: this.#allOffers.find((offer) => offer.type === this.#point.type).offers,
       checkedOffers: [],
       destination: BLANK_DESTINATION,
       onEditFormSubmit: this.#handleNewPointSubmit,
