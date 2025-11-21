@@ -504,6 +504,7 @@ main {
       -ms-user-select: none;
           user-select: none;
   cursor: pointer;
+  text-transform: capitalize;
   -webkit-transition: color 0.2s;
   transition: color 0.2s; }
   .event__type-label::before {

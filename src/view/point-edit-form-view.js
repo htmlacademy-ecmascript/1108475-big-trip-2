@@ -1,7 +1,6 @@
 import he from 'he';
 import { DateMap, huminazeDate } from '../util.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
-import { POINT_TYPES, POINT_DESTINATIONS, OffersMap } from '../const.js';
 import flatpickr from 'flatpickr';
 
 import 'flatpickr/dist/flatpickr.min.css';
@@ -9,12 +8,13 @@ import 'flatpickr/dist/flatpickr.min.css';
 const createPointOffer = (offer, checkedOffers) => {
   const { id: offerId, title, price } = offer;
   const isOfferChecked = checkedOffers.map((item) => item.id).includes(offerId) ? 'checked' : '';
+  const titleLastWord = title.split(' ').pop();
 
   return (
     `
       <div class="event__offer-selector">
-        <input class="event__offer-checkbox  visually-hidden" id="event-offer-${OffersMap.get(title)}-${offerId}" type="checkbox" name="event-offer-${OffersMap.get(title)}" ${isOfferChecked}>
-        <label class="event__offer-label" for="event-offer-${OffersMap.get(title)}-${offerId}">
+        <input class="event__offer-checkbox  visually-hidden" id="event-offer-${titleLastWord}-${offerId}" type="checkbox" name="event-offer-${titleLastWord}" ${isOfferChecked}>
+        <label class="event__offer-label" for="event-offer-${titleLastWord}-${offerId}">
           <span class="event__offer-title">${title}</span>
           &plus;&euro;&nbsp;
           <span class="event__offer-price">${price}</span>
@@ -35,9 +35,11 @@ const createPointOffers = (pointOffers, checkedOffers) => pointOffers.length
   : '';
 
 
-const createPointEditFormTemplate = (data) => {
-  const { id, basePrice, dateFrom, dateTo, type, destination } = data;
+const createPointEditFormTemplate = (data, allOffers, allDestinations) => {
+  const { id, basePrice, dateFrom, dateTo, type } = data;
   const { name, description, pictures } = data.destinationInfo;
+  const offersTypes = allOffers.map((item) => item.type);
+  const destinationsNames = allDestinations.map((item) => item.name);
 
   const isNewPoint = id
     ? `
@@ -53,16 +55,16 @@ const createPointEditFormTemplate = (data) => {
   const createPointTypes = () =>
     `
     ${
-  POINT_TYPES.map((item) =>
+  offersTypes.map((item) =>
     `<div class="event__type-item">
-      <input id="event-type-${item.toLowerCase()}-${id}" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${item.toLowerCase()}" ${item.toLowerCase() === type.toLowerCase() ? 'checked' : ''}>
-      <label class="event__type-label  event__type-label--${item.toLowerCase()}" for="event-type-${item.toLowerCase()}-${id}">${item}</label>
+      <input id="event-type-${item}-${id}" class="event__type-input  visually-hidden" type="radio" name="event-type" value="${item}" ${item === type ? 'checked' : ''}>
+      <label class="event__type-label  event__type-label--${item}" for="event-type-${item}-${id}">${item}</label>
     </div>`).join('')}
     `;
 
   const createPointDestinations = () =>
     `
-    ${POINT_DESTINATIONS.map((item) =>
+    ${destinationsNames.map((item) =>
     `
     <option value="${item}"></option>`).join('')}
     `;
@@ -78,11 +80,11 @@ const createPointEditFormTemplate = (data) => {
       `
     : '';
 
-  const createDestinationInfo = () => destination
+  const createDestinationInfo = () => description || pictures.length
     ? `
     <section class="event__section  event__section--destination">
       <h3 class="event__section-title  event__section-title--destination">Destination</h3>
-      <p class="event__destination-description">${description}</p>
+      ${description ? `<p class="event__destination-description">${description}</p>` : ''}
 
       ${createPointPhotos()}
     </section>
@@ -97,7 +99,7 @@ const createPointEditFormTemplate = (data) => {
           <div class="event__type-wrapper">
             <label class="event__type  event__type-btn" for="event-type-toggle-${id}">
               <span class="visually-hidden">Choose event type</span>
-              <img class="event__type-icon" width="17" height="17" src="img/icons/${type.toLowerCase()}.png" alt="Event type icon">
+              <img class="event__type-icon" width="17" height="17" src="img/icons/${type}.png" alt="Event type icon">
             </label>
             <input class="event__type-toggle  visually-hidden" id="event-type-toggle-${id}" type="checkbox">
 
@@ -133,7 +135,7 @@ const createPointEditFormTemplate = (data) => {
               <span class="visually-hidden">Price</span>
               &euro;
             </label>
-            <input class="event__input  event__input--price" id="event-price-${id}" type="number" min="0" max="1000" name="event-price" value="${basePrice}" autocomplete="off">
+            <input class="event__input  event__input--price" id="event-price-${id}" type="number" min="0" max="10000" name="event-price" value="${basePrice}" autocomplete="off">
           </div>
 
           <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
@@ -195,7 +197,7 @@ export default class PointEditFormView extends AbstractStatefulView {
   }
 
   get template() {
-    return createPointEditFormTemplate(this._state);
+    return createPointEditFormTemplate(this._state, this.#allOffers, this.#allDestinations);
   }
 
   removeElement() {
@@ -249,9 +251,9 @@ export default class PointEditFormView extends AbstractStatefulView {
   #pointTypeChangeHandler = (evt) => {
     this.updateElement({
       type: evt.target.value,
-      offersByType: this.#allOffers.find((offer) => offer.type.toLowerCase() === evt.target.value).offers,
-      offers: evt.target.value === this.#point.type.toLowerCase() ? [...this.#point.offers] : [],
-      checkedOffers: evt.target.value === this.#point.type.toLowerCase() ? [...this.#checkedOffers] : [],
+      offersByType: this.#allOffers.find((offer) => offer.type === evt.target.value).offers,
+      offers: evt.target.value === this.#point.type ? [...this.#point.offers] : [],
+      checkedOffers: evt.target.value === this.#point.type ? [...this.#checkedOffers] : [],
     });
   };
 
@@ -289,17 +291,9 @@ export default class PointEditFormView extends AbstractStatefulView {
   };
 
   #dateFromCloseHandler = ([userDate]) => {
-    if (new Date(this._state.dateTo) - new Date(userDate) < 0) {
-      this._setState({
-        dateFrom: userDate,
-        dateTo: userDate,
-      });
-      this.#dateToPicker.setDate(this._state.dateTo);
-    } else {
-      this._setState({
-        dateFrom: userDate,
-      });
-    }
+    this._setState({
+      dateFrom: userDate,
+    });
     this.#dateToPicker.set('minDate', this._state.dateFrom);
   };
 
