@@ -2,54 +2,24 @@ import he from 'he';
 import { DateMap, huminazeDate } from '../util.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import flatpickr from 'flatpickr';
-
 import 'flatpickr/dist/flatpickr.min.css';
 
-const createPointOffer = (offer, checkedOffers) => {
-  const { id: offerId, title, price } = offer;
-  const isOfferChecked = checkedOffers.map((item) => item.id).includes(offerId) ? 'checked' : '';
-  const titleLastWord = title.split(' ').pop();
-
-  return (
-    `
-      <div class="event__offer-selector">
-        <input class="event__offer-checkbox  visually-hidden" id="event-offer-${titleLastWord}-${offerId}" type="checkbox" name="event-offer-${titleLastWord}" ${isOfferChecked}>
-        <label class="event__offer-label" for="event-offer-${titleLastWord}-${offerId}">
-          <span class="event__offer-title">${title}</span>
-          &plus;&euro;&nbsp;
-          <span class="event__offer-price">${price}</span>
-        </label>
-      </div>
-      `
-  );
-};
-
-const createPointOffers = (pointOffers, checkedOffers) => pointOffers.length
-  ? `<section class="event__section  event__section--offers">
-      <h3 class="event__section-title  event__section-title--offers">Offers</h3>
-      <div class="event__available-offers">
-      ${pointOffers.map((offer) => createPointOffer(offer, checkedOffers)).join('')}
-      </div>
-    </section>
-    `
-  : '';
-
-
 const createPointEditFormTemplate = (data, allOffers, allDestinations) => {
-  const { id, basePrice, dateFrom, dateTo, type } = data;
+  const { id, basePrice, dateFrom, dateTo, type, offersByType, checkedOffers } = data;
   const { name, description, pictures } = data.destinationInfo;
+  const { isDisabled, isSaving, isDeleting } = data.formState;
   const offersTypes = allOffers.map((item) => item.type);
   const destinationsNames = allDestinations.map((item) => item.name);
 
   const isNewPoint = id
     ? `
-    <button class="event__reset-btn" type="reset">Delete</button>
-    <button class="event__rollup-btn" type="button">
+    <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>${isDeleting ? 'Deleting...' : 'Delete'}</button>
+    <button class="event__rollup-btn" type="button" ${isDisabled ? 'disabled' : ''}>
       <span class="visually-hidden">Open event</span>
     </button>
     `
     : `
-      <button class="event__reset-btn" type="reset">Cancel</button>
+      <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>Cancel</button>
       `;
 
   const createPointTypes = () =>
@@ -91,6 +61,35 @@ const createPointEditFormTemplate = (data, allOffers, allDestinations) => {
     `
     : '';
 
+  const createPointOffer = (offer) => {
+    const { id: offerId, title, price } = offer;
+    const isOfferChecked = checkedOffers.map((item) => item.id).includes(offerId) ? 'checked' : '';
+    const titleLastWord = title.split(' ').pop();
+
+    return (
+      `
+      <div class="event__offer-selector">
+        <input class="event__offer-checkbox  visually-hidden" id="event-offer-${titleLastWord}-${offerId}" type="checkbox" name="event-offer-${titleLastWord}" ${isOfferChecked} ${isDisabled ? 'disabled' : ''}>
+        <label class="event__offer-label" for="event-offer-${titleLastWord}-${offerId}">
+          <span class="event__offer-title">${title}</span>
+          &plus;&euro;&nbsp;
+          <span class="event__offer-price">${price}</span>
+        </label>
+      </div>
+      `
+    );
+  };
+
+  const createPointOffers = () => offersByType.length
+    ? `<section class="event__section  event__section--offers">
+      <h3 class="event__section-title  event__section-title--offers">Offers</h3>
+      <div class="event__available-offers">
+      ${offersByType.map((offer) => createPointOffer(offer, checkedOffers)).join('')}
+      </div>
+    </section>
+    `
+    : '';
+
   return (
     `
     <li class="trip-events__item">
@@ -101,7 +100,7 @@ const createPointEditFormTemplate = (data, allOffers, allDestinations) => {
               <span class="visually-hidden">Choose event type</span>
               <img class="event__type-icon" width="17" height="17" src="img/icons/${type}.png" alt="Event type icon">
             </label>
-            <input class="event__type-toggle  visually-hidden" id="event-type-toggle-${id}" type="checkbox">
+            <input class="event__type-toggle  visually-hidden" id="event-type-toggle-${id}" type="checkbox" ${isDisabled ? 'disabled' : ''}>
 
             <div class="event__type-list">
               <fieldset class="event__type-group">
@@ -116,7 +115,7 @@ const createPointEditFormTemplate = (data, allOffers, allDestinations) => {
             <label class="event__label  event__type-output" for="event-destination-${id}">
               ${type}
             </label>
-            <input class="event__input  event__input--destination" id="event-destination-${id}" type="text" name="event-destination" value="${he.encode(name)}" list="destination-list-${id}" autocomplete="off">
+            <input class="event__input  event__input--destination" id="event-destination-${id}" type="text" name="event-destination" value="${he.encode(name)}" list="destination-list-${id}" autocomplete="off" ${isDisabled ? 'disabled' : ''}>
             <datalist id="destination-list-${id}">
               ${createPointDestinations()}
             </datalist>
@@ -124,10 +123,10 @@ const createPointEditFormTemplate = (data, allOffers, allDestinations) => {
 
           <div class="event__field-group  event__field-group--time">
             <label class="visually-hidden" for="event-start-time-${id}">From</label>
-            <input class="event__input  event__input--time" id="event-start-time-${id}" type="text" name="event-start-time" value="${huminazeDate(dateFrom, DateMap.get('DayMonthYear HoursMinutes'))}">
+            <input class="event__input  event__input--time" id="event-start-time-${id}" type="text" name="event-start-time" value="${huminazeDate(dateFrom, DateMap.get('DayMonthYear HoursMinutes'))}" ${isDisabled ? 'disabled' : ''}>
             &mdash;
             <label class="visually-hidden" for="event-end-time-${id}">To</label>
-            <input class="event__input  event__input--time" id="event-end-time-${id}" type="text" name="event-end-time" value="${huminazeDate(dateTo, DateMap.get('DayMonthYear HoursMinutes'))}">
+            <input class="event__input  event__input--time" id="event-end-time-${id}" type="text" name="event-end-time" value="${huminazeDate(dateTo, DateMap.get('DayMonthYear HoursMinutes'))}" ${isDisabled ? 'disabled' : ''}>
           </div>
 
           <div class="event__field-group  event__field-group--price">
@@ -135,14 +134,14 @@ const createPointEditFormTemplate = (data, allOffers, allDestinations) => {
               <span class="visually-hidden">Price</span>
               &euro;
             </label>
-            <input class="event__input  event__input--price" id="event-price-${id}" type="number" min="0" max="10000" name="event-price" value="${basePrice}" autocomplete="off">
+            <input class="event__input  event__input--price" id="event-price-${id}" type="number" min="0" max="10000" name="event-price" value="${basePrice}" autocomplete="off" ${isDisabled ? 'disabled' : ''}>
           </div>
 
-          <button class="event__save-btn  btn  btn--blue" type="submit">Save</button>
+          <button class="event__save-btn  btn  btn--blue" type="submit" ${isDisabled ? 'disabled' : ''}>${isSaving ? 'Saving...' : 'Save'}</button>
           ${isNewPoint}
         </header>
         <section class="event__details">
-          ${createPointOffers(data.offersByType, data.checkedOffers)}
+          ${createPointOffers()}
 
           ${createDestinationInfo()}
         </section>
@@ -334,6 +333,11 @@ export default class PointEditFormView extends AbstractStatefulView {
       checkedOffers: checkedOffers,
       destinationInfo: {
         ...destination
+      },
+      formState: {
+        isDisabled: false,
+        isSaving: false,
+        isDeleting: false,
       }
     };
   }
@@ -344,6 +348,7 @@ export default class PointEditFormView extends AbstractStatefulView {
     delete point.offersByType;
     delete point.checkedOffers;
     delete point.destinationInfo;
+    delete point.formState;
 
     return point;
   }

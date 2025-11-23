@@ -2,7 +2,7 @@ import { render, replace, remove } from '../framework/render.js';
 import PointView from '../view/point-view.js';
 import PointEditFormView from '../view/point-edit-form-view.js';
 import { UserAction, UpdateType } from '../const.js';
-import { areDatesEqual } from '../util.js';
+import { isEscapeKey, areDatesEqual } from '../util.js';
 
 export default class PointPresenter {
   #pointComponent = null;
@@ -74,12 +74,13 @@ export default class PointPresenter {
       return;
     }
 
-    if (this.#pointsListContainer.contains(previousPointComponent.element)) {
+    if (!this.#isEditing) {
       replace(this.#pointComponent, previousPointComponent);
     }
 
-    if (this.#pointsListContainer.contains(previousEditFormComponent.element)) {
-      replace(this.#editFormComponent, previousEditFormComponent);
+    if (this.#isEditing) {
+      replace(this.#pointComponent, previousEditFormComponent);
+      this.#isEditing = false;
     }
 
     remove(previousPointComponent);
@@ -123,7 +124,6 @@ export default class PointPresenter {
       isMinorUpdate ? UpdateType.MINOR : UpdateType.PATCH,
       update,
     );
-    this.#closeEditForm();
   };
 
   #handleDeleteClick = (point) => {
@@ -144,15 +144,62 @@ export default class PointPresenter {
   };
 
   resetEditing() {
-    if (this.#isEditing === true) {
+    if (this.#isEditing) {
       this.#editFormComponent.reset();
       this.#closeEditForm();
     }
   }
 
+  setSaving() {
+    if (!this.#isEditing) {
+      this.#pointComponent.disable();
+      return;
+    }
+
+    this.#editFormComponent.updateElement({
+      formState: {
+        isDisabled: true,
+        isSaving: true,
+        isDeleting: false,
+      }
+    });
+  }
+
+  setDeleting() {
+    if (this.#isEditing) {
+      this.#editFormComponent.updateElement({
+        formState: {
+          isDisabled: true,
+          isSaving: false,
+          isDeleting: true,
+        }
+      });
+    }
+  }
+
+  setResetting() {
+    if (!this.#isEditing) {
+      this.#pointComponent.shake();
+      this.#pointComponent.enable();
+      return;
+    }
+
+    const resetFormState = () => {
+      this.#editFormComponent.updateElement({
+        formState: {
+          isDisabled: false,
+          isSaving: false,
+          isDeleting: false,
+        }
+      });
+    };
+
+    this.#editFormComponent.shake(resetFormState);
+  }
+
 
   #documentKeydownHandler = (evt) => {
-    if (evt.key === 'Escape') {
+    if (isEscapeKey(evt)) {
       evt.preventDefault();
       this.#editFormComponent.reset();
       this.#closeEditForm();
