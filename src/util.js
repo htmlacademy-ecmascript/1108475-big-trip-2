@@ -76,8 +76,10 @@ const getDateDifference = (start, end) => {
   return getDateDifferenceString(totalDays, totalHours, totalMinutes);
 };
 
+const isEscapeKey = (evt) => evt.key === 'Escape';
+
 const getRandomInteger = (min, max) => Math.floor(Math.random() * (Math.floor(max) - Math.ceil(min) + 1) + Math.ceil(min));
 
 const getRandomArrElem = (array) => array[Math.floor(Math.random() * array.length)];
 
-export { getRandomArrElem, getRandomInteger, DateMap, FiltersMap, SortingMap, areDatesEqual, getDateDifference, huminazeDate };
+export { isEscapeKey, getRandomArrElem, getRandomInteger, DateMap, FiltersMap, SortingMap, areDatesEqual, getDateDifference, huminazeDate };

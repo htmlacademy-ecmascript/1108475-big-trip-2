@@ -1,20 +1,19 @@
 import { render, remove, RenderPosition } from '../framework/render.js';
 import PointEditFormView from '../view/point-edit-form-view.js';
 import { UserAction, UpdateType, BLANK_POINT, BLANK_DESTINATION } from '../const.js';
+import { isEscapeKey } from '../util.js';
 
 export default class NewPointPresenter {
   #editFormComponent = null;
   #pointsListContainer = null;
-  #pointsModel = null;
   #allOffers = null;
   #allDestinations = null;
   #point = null;
   #onPointChange = null;
   #handleNewPointDestroy = null;
 
-  constructor(pointsListComponent, handlePointChange, handleNewPointDestroy, pointsModel, allOffers, allDestinations) {
+  constructor(pointsListComponent, handlePointChange, handleNewPointDestroy, allOffers, allDestinations) {
     this.#pointsListContainer = pointsListComponent;
-    this.#pointsModel = pointsModel;
     this.#allOffers = allOffers;
     this.#allDestinations = allDestinations;
     this.#onPointChange = handlePointChange;
@@ -60,16 +59,40 @@ export default class NewPointPresenter {
   #handleNewPointCloseClick = () => this.destroy();
 
   #handleNewPointSubmit = (point) => {
-    const pointsCount = this.#pointsModel.points.length;
+    delete point.id;
     this.#onPointChange(
       UserAction.ADD_POINT,
       UpdateType.MINOR,
-      { ...point, id: `${pointsCount + 1}`, },
+      point,
     );
   };
 
+  setSaving() {
+    this.#editFormComponent.updateElement({
+      formState: {
+        isDisabled: true,
+        isSaving: true,
+        isDeleting: false,
+      }
+    });
+  }
+
+  setResetting() {
+    const resetFormState = () => {
+      this.#editFormComponent.updateElement({
+        formState: {
+          isDisabled: false,
+          isSaving: false,
+          isDeleting: false,
+        }
+      });
+    };
+
+    this.#editFormComponent.shake(resetFormState);
+  }
+
   #documentKeydownHandler = (evt) => {
-    if (evt.key === 'Escape') {
+    if (isEscapeKey(evt)) {
       evt.preventDefault();
       this.destroy();
     }
