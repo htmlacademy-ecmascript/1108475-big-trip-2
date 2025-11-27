@@ -1,4 +1,5 @@
-import { DateMap, getDateDifference, huminazeDate } from '../util.js';
+import { DateFormat } from '../const.js';
+import { getDateDifference, huminazeDate } from '../util.js';
 import AbstractView from '../framework/view/abstract-view.js';
 
 
@@ -9,7 +10,7 @@ const createPointTemplate = (point, checkedOffers, destination) => {
     ? 'event__favorite-btn--active'
     : '';
 
-  const hasOffers = checkedOffers.length
+  const checkedOffersTemplate = checkedOffers.length
     ? `
       <ul class="event__selected-offers">
         ${checkedOffers.map((offer) =>
@@ -27,16 +28,16 @@ const createPointTemplate = (point, checkedOffers, destination) => {
     `
     <li class="trip-events__item">
       <div class="event">
-        <time class="event__date" datetime="${dateFrom}">${huminazeDate(dateFrom, DateMap.get('MonthDay'))}</time>
+        <time class="event__date" datetime="${dateFrom}">${huminazeDate(dateFrom, DateFormat.MONTH_DAY)}</time>
         <div class="event__type">
           <img class="event__type-icon" width="42" height="42" src="img/icons/${type.toLowerCase()}.png" alt="Event type icon">
         </div>
         <h3 class="event__title">${type} ${destination.name}</h3>
         <div class="event__schedule">
           <p class="event__time">
-            <time class="event__start-time" datetime="${dateFrom}">${huminazeDate(dateFrom, DateMap.get('HoursMinutes'))}</time>
+            <time class="event__start-time" datetime="${dateFrom}">${huminazeDate(dateFrom, DateFormat.HOURS_MINUTES)}</time>
             &mdash;
-            <time class="event__end-time" datetime="${dateTo}">${huminazeDate(dateTo, DateMap.get('HoursMinutes')) }</time>
+            <time class="event__end-time" datetime="${dateTo}">${huminazeDate(dateTo, DateFormat.HOURS_MINUTES) }</time>
           </p>
           <p class="event__duration">${getDateDifference(dateFrom, dateTo)}</p>
         </div>
@@ -44,7 +45,7 @@ const createPointTemplate = (point, checkedOffers, destination) => {
           &euro;&nbsp;<span class="event__price-value">${basePrice}</span>
         </p>
         <h4 class="visually-hidden">Offers:</h4>
-        ${hasOffers}
+        ${checkedOffersTemplate}
         <button class="event__favorite-btn ${favoritePoint}" type="button">
           <span class="visually-hidden">Add to favorite</span>
           <svg class="event__favorite-icon" width="28" height="28" viewBox="0 0 28 28">

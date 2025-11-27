@@ -114,6 +114,7 @@ export default class PointPresenter {
   };
 
   #handleEditFormSubmit = (update) => {
+    document.removeEventListener('keydown', this.#documentKeydownHandler);
     const isMinorUpdate =
       !areDatesEqual(this.#point.dateFrom, update.dateFrom) ||
       !areDatesEqual(this.#point.dateTo, update.dateTo) ||
@@ -192,6 +193,7 @@ export default class PointPresenter {
           isDeleting: false,
         }
       });
+      document.addEventListener('keydown', this.#documentKeydownHandler);
     };
 
     this.#editFormComponent.shake(resetFormState);

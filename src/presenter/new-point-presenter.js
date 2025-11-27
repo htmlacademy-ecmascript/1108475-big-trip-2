@@ -59,6 +59,7 @@ export default class NewPointPresenter {
   #handleNewPointCloseClick = () => this.destroy();
 
   #handleNewPointSubmit = (point) => {
+    document.removeEventListener('keydown', this.#documentKeydownHandler);
     delete point.id;
     this.#onPointChange(
       UserAction.ADD_POINT,
@@ -86,6 +87,7 @@ export default class NewPointPresenter {
           isDeleting: false,
         }
       });
+      document.addEventListener('keydown', this.#documentKeydownHandler);
     };
 
     this.#editFormComponent.shake(resetFormState);

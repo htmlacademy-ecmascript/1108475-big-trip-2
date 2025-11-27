@@ -1,5 +1,6 @@
 import he from 'he';
-import { DateMap, huminazeDate } from '../util.js';
+import { DateFormat } from '../const.js';
+import { huminazeDate } from '../util.js';
 import AbstractStatefulView from '../framework/view/abstract-stateful-view.js';
 import flatpickr from 'flatpickr';
 import 'flatpickr/dist/flatpickr.min.css';
@@ -22,7 +23,7 @@ const createPointEditFormTemplate = (data, allOffers, allDestinations) => {
       <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>Cancel</button>
       `;
 
-  const createPointTypes = () =>
+  const createPointTypesTemplate = () =>
     `
     ${
   offersTypes.map((item) =>
@@ -32,14 +33,14 @@ const createPointEditFormTemplate = (data, allOffers, allDestinations) => {
     </div>`).join('')}
     `;
 
-  const createPointDestinations = () =>
+  const createPointDestinationsTemplate = () =>
     `
     ${destinationsNames.map((item) =>
     `
     <option value="${item}"></option>`).join('')}
     `;
 
-  const createPointPhotos = () => pictures.length
+  const createPointPhotosTemplate = () => pictures.length
     ? `
       <div class="event__photos-container">
         <div class="event__photos-tape">
@@ -50,18 +51,18 @@ const createPointEditFormTemplate = (data, allOffers, allDestinations) => {
       `
     : '';
 
-  const createDestinationInfo = () => description || pictures.length
+  const createDestinationInfoTemplate = () => description || pictures.length
     ? `
     <section class="event__section  event__section--destination">
       <h3 class="event__section-title  event__section-title--destination">Destination</h3>
       ${description ? `<p class="event__destination-description">${description}</p>` : ''}
 
-      ${createPointPhotos()}
+      ${createPointPhotosTemplate()}
     </section>
     `
     : '';
 
-  const createPointOffer = (offer) => {
+  const createPointOfferTemplate = (offer) => {
     const { id: offerId, title, price } = offer;
     const isOfferChecked = checkedOffers.map((item) => item.id).includes(offerId) ? 'checked' : '';
     const titleLastWord = title.split(' ').pop();
@@ -80,11 +81,11 @@ const createPointEditFormTemplate = (data, allOffers, allDestinations) => {
     );
   };
 
-  const createPointOffers = () => offersByType.length
+  const createPointOffersTemplate = () => offersByType.length
     ? `<section class="event__section  event__section--offers">
       <h3 class="event__section-title  event__section-title--offers">Offers</h3>
       <div class="event__available-offers">
-      ${offersByType.map((offer) => createPointOffer(offer, checkedOffers)).join('')}
+      ${offersByType.map((offer) => createPointOfferTemplate(offer, checkedOffers)).join('')}
       </div>
     </section>
     `
@@ -106,7 +107,7 @@ const createPointEditFormTemplate = (data, allOffers, allDestinations) => {
               <fieldset class="event__type-group">
                 <legend class="visually-hidden">Event type</legend>
 
-                ${createPointTypes()}
+                ${createPointTypesTemplate()}
               </fieldset>
             </div>
           </div>
@@ -117,16 +118,16 @@ const createPointEditFormTemplate = (data, allOffers, allDestinations) => {
             </label>
             <input class="event__input  event__input--destination" id="event-destination-${id}" type="text" name="event-destination" value="${he.encode(name)}" list="destination-list-${id}" autocomplete="off" ${isDisabled ? 'disabled' : ''}>
             <datalist id="destination-list-${id}">
-              ${createPointDestinations()}
+              ${createPointDestinationsTemplate()}
             </datalist>
           </div>
 
           <div class="event__field-group  event__field-group--time">
             <label class="visually-hidden" for="event-start-time-${id}">From</label>
-            <input class="event__input  event__input--time" id="event-start-time-${id}" type="text" name="event-start-time" value="${huminazeDate(dateFrom, DateMap.get('DayMonthYear HoursMinutes'))}" ${isDisabled ? 'disabled' : ''}>
+            <input class="event__input  event__input--time" id="event-start-time-${id}" type="text" name="event-start-time" value="${huminazeDate(dateFrom, DateFormat.DAY_MONTH_YEAR_HOURS_MINUTES)}" ${isDisabled ? 'disabled' : ''}>
             &mdash;
             <label class="visually-hidden" for="event-end-time-${id}">To</label>
-            <input class="event__input  event__input--time" id="event-end-time-${id}" type="text" name="event-end-time" value="${huminazeDate(dateTo, DateMap.get('DayMonthYear HoursMinutes'))}" ${isDisabled ? 'disabled' : ''}>
+            <input class="event__input  event__input--time" id="event-end-time-${id}" type="text" name="event-end-time" value="${huminazeDate(dateTo, DateFormat.DAY_MONTH_YEAR_HOURS_MINUTES)}" ${isDisabled ? 'disabled' : ''}>
           </div>
 
           <div class="event__field-group  event__field-group--price">
@@ -141,9 +142,9 @@ const createPointEditFormTemplate = (data, allOffers, allDestinations) => {
           ${isNewPoint}
         </header>
         <section class="event__details">
-          ${createPointOffers()}
+          ${createPointOffersTemplate()}
 
-          ${createDestinationInfo()}
+          ${createDestinationInfoTemplate()}
         </section>
       </form>
     </li>
@@ -222,9 +223,10 @@ export default class PointEditFormView extends AbstractStatefulView {
   #editFormSubmitHandler = (evt) => {
     evt.preventDefault();
     if (
-      !this.element.querySelector('input[name="event-destination"]').value ||
+      !this._state.destination ||
       !this.#dateFromPicker.input.value ||
-      !this.#dateToPicker.input.value
+      !this.#dateToPicker.input.value ||
+      !this._state.basePrice
     ) {
       this.shake();
     } else {
