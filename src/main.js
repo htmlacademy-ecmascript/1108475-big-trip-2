@@ -1,4 +1,5 @@
 import Presenter from './presenter/presenter.js';
+import TripInfoPresenter from './presenter/trip-info-presenter.js';
 import PointsModel from './model/points-model.js';
 import FilterModel from './model/filter-model.js';
 import FilterPresenter from './presenter/filter-presenter.js';
@@ -15,9 +16,11 @@ const pointsModel = new PointsModel({
 
 const filtersModel = new FilterModel();
 
+const tripInfoPresenter = new TripInfoPresenter(mainContainer, pointsModel);
 const filterPresenter = new FilterPresenter(filtersContainer, filtersModel, pointsModel);
 const presenter = new Presenter(mainContainer, tripEventsContainer, filtersModel, pointsModel);
 
 pointsModel.init();
+tripInfoPresenter.init();
 filterPresenter.init();
 presenter.init();

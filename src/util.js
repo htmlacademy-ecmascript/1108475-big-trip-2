@@ -1,17 +1,10 @@
 import dayjs from 'dayjs';
 import isBetween from 'dayjs/plugin/isBetween';
 import duration from 'dayjs/plugin/duration';
-import { FilterType, SortingType } from './const.js';
+import { FilterType, SortingType, ESCAPE_KEY } from './const.js';
 
 dayjs.extend(isBetween);
 dayjs.extend(duration);
-
-const DateMap = new Map([
-  ['MonthDay', 'MMM D'],
-  ['DayMonthYear', 'DD/MM/YY'],
-  ['HoursMinutes', 'HH:mm'],
-  ['DayMonthYear HoursMinutes', 'DD/MM/YY HH:mm']
-]);
 
 const FiltersMap = new Map([
   [FilterType.EVERYTHING, {
@@ -43,26 +36,26 @@ const SortingMap = new Map([
 
 const huminazeDate = (date, format) => date ? dayjs(date).format(format) : '';
 
-const areDatesEqual = (dateA, dateB) => (dateA === null && dateB === null) || dayjs(dateA).isSame(dateB);
+const areDatesEqual = (dateA, dateB, unit = null) => (dateA === null && dateB === null) || dayjs(dateA).isSame(dateB, unit);
 
 const getDateDifferenceString = (totalDays, totalHours, totalMinutes) => {
   if (!totalDays && !totalHours && !totalMinutes) {
     return '';
   }
 
-  const minutes = totalMinutes > 9 ? `${totalMinutes}M` : `0${totalMinutes}M`;
+  const minutes = totalMinutes < 10 ? `0${totalMinutes}M` : `${totalMinutes}M`;
 
   if (!totalDays && !totalHours) {
     return `${minutes}`;
   }
 
-  const hours = totalHours > 9 ? `${totalHours}H` : `0${totalHours}H`;
+  const hours = totalHours < 10 ? `0${totalHours}H` : `${totalHours}H`;
 
   if(!totalDays) {
     return `${hours} ${minutes}`;
   }
 
-  const days = totalDays > 9 ? `${totalDays}D` : `0${totalDays}D`;
+  const days = totalDays < 10 ? `0${totalDays}D` : `${totalDays}D`;
 
   return `${days} ${hours} ${minutes}`;
 };
@@ -76,10 +69,10 @@ const getDateDifference = (start, end) => {
   return getDateDifferenceString(totalDays, totalHours, totalMinutes);
 };
 
-const isEscapeKey = (evt) => evt.key === 'Escape';
+const isEscapeKey = (evt) => evt.key === ESCAPE_KEY;
 
 const getRandomInteger = (min, max) => Math.floor(Math.random() * (Math.floor(max) - Math.ceil(min) + 1) + Math.ceil(min));
 
 const getRandomArrElem = (array) => array[Math.floor(Math.random() * array.length)];
 
-export { isEscapeKey, getRandomArrElem, getRandomInteger, DateMap, FiltersMap, SortingMap, areDatesEqual, getDateDifference, huminazeDate };
+export { isEscapeKey, getRandomArrElem, getRandomInteger, FiltersMap, SortingMap, areDatesEqual, getDateDifference, huminazeDate };
