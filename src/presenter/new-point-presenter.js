@@ -5,18 +5,18 @@ import { isEscapeKey } from '../util.js';
 
 export default class NewPointPresenter {
   #editFormComponent = null;
-  #pointsListContainer = null;
+  #pointsListComponent = null;
   #allOffers = null;
   #allDestinations = null;
   #point = null;
-  #onPointChange = null;
+  #handlePointChange = null;
   #handleNewPointDestroy = null;
 
   constructor(pointsListComponent, handlePointChange, handleNewPointDestroy, allOffers, allDestinations) {
-    this.#pointsListContainer = pointsListComponent;
+    this.#pointsListComponent = pointsListComponent;
     this.#allOffers = allOffers;
     this.#allDestinations = allDestinations;
-    this.#onPointChange = handlePointChange;
+    this.#handlePointChange = handlePointChange;
     this.#handleNewPointDestroy = handleNewPointDestroy;
   }
 
@@ -34,11 +34,11 @@ export default class NewPointPresenter {
       offers: this.#allOffers.find((offer) => offer.type === this.#point.type).offers,
       checkedOffers: [],
       destination: BLANK_DESTINATION,
-      onEditFormSubmit: this.#handleNewPointSubmit,
-      onEditCloseButtonClick: this.#handleNewPointCloseClick,
+      handleEditFormSubmit: this.#handleNewPointSubmit,
+      handleEditCloseButtonClick: this.#handleNewPointCloseClick,
     });
 
-    render(this.#editFormComponent, this.#pointsListContainer.element, RenderPosition.AFTERBEGIN);
+    render(this.#editFormComponent, this.#pointsListComponent.element, RenderPosition.AFTERBEGIN);
 
     document.addEventListener('keydown', this.#documentKeydownHandler);
   }
@@ -56,18 +56,6 @@ export default class NewPointPresenter {
     this.#handleNewPointDestroy();
   }
 
-  #handleNewPointCloseClick = () => this.destroy();
-
-  #handleNewPointSubmit = (point) => {
-    document.removeEventListener('keydown', this.#documentKeydownHandler);
-    delete point.id;
-    this.#onPointChange(
-      UserAction.ADD_POINT,
-      UpdateType.MINOR,
-      point,
-    );
-  };
-
   setSaving() {
     this.#editFormComponent.updateElement({
       formState: {
@@ -79,7 +67,7 @@ export default class NewPointPresenter {
   }
 
   setResetting() {
-    const resetFormState = () => {
+    this.#editFormComponent.shake(() => {
       this.#editFormComponent.updateElement({
         formState: {
           isDisabled: false,
@@ -88,10 +76,20 @@ export default class NewPointPresenter {
         }
       });
       document.addEventListener('keydown', this.#documentKeydownHandler);
-    };
-
-    this.#editFormComponent.shake(resetFormState);
+    });
   }
+
+  #handleNewPointCloseClick = () => this.destroy();
+
+  #handleNewPointSubmit = (point) => {
+    document.removeEventListener('keydown', this.#documentKeydownHandler);
+    delete point.id;
+    this.#handlePointChange(
+      UserAction.ADD_POINT,
+      UpdateType.MINOR,
+      point,
+    );
+  };
 
   #documentKeydownHandler = (evt) => {
     if (isEscapeKey(evt)) {

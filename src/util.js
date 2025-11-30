@@ -6,39 +6,40 @@ import { FilterType, SortingType, ESCAPE_KEY } from './const.js';
 dayjs.extend(isBetween);
 dayjs.extend(duration);
 
-const FiltersMap = new Map([
-  [FilterType.EVERYTHING, {
-    filterPoints: (points) => points,
-    empty: 'Click New Event to create your first point',
-  }],
-  [FilterType.FUTURE, {
-    filterPoints: (points) => points.filter((point) => dayjs(point.dateFrom).isAfter(dayjs())),
-    empty: 'There are no future events now',
-  }],
-  [FilterType.PRESENT, {
-    filterPoints: (points) => points.filter((point) => dayjs().isBetween(point.dateFrom, point.dateTo, null, [])),
-    empty: 'There are no present events now',
-  }],
-  [FilterType.PAST, {
-    filterPoints: (points) => points.filter((point) => dayjs(point.dateTo).isBefore(dayjs())),
-    empty: 'There are no past events now',
-  }]
-]);
+const filterData = (filterType, points) => {
+  switch (filterType) {
+    case FilterType.FUTURE:
+      return points.filter((point) => dayjs(point.dateFrom).isAfter(dayjs()));
+    case FilterType.PRESENT:
+      return points.filter((point) => dayjs().isBetween(point.dateFrom, point.dateTo, null, []));
+    case FilterType.PAST:
+      return points.filter((point) => dayjs(point.dateTo).isBefore(dayjs()));
+    default:
+      return points;
+  }
+};
 
-const SortingMap = new Map([
-  [SortingType.DAY,
-    (points) => points.sort((point, nextPoint) => dayjs(point.dateFrom) - dayjs(nextPoint.dateFrom))],
-  [SortingType.TIME,
-    (points) => points.sort((point, nextPoint) => (dayjs(nextPoint.dateTo).diff(dayjs(nextPoint.dateFrom))) - (dayjs(point.dateTo).diff(dayjs(point.dateFrom))))],
-  [SortingType.PRICE,
-    (points) => points.sort((point, nextPoint) => nextPoint.basePrice - point.basePrice)],
-]);
+const sortData = (sortingType, points) => {
+  switch (sortingType) {
+    case SortingType.DAY:
+      return points.sort((point, nextPoint) => dayjs(point.dateFrom) - dayjs(nextPoint.dateFrom));
+    case SortingType.TIME:
+      return points.sort((point, nextPoint) => (dayjs(nextPoint.dateTo).diff(dayjs(nextPoint.dateFrom))) - (dayjs(point.dateTo).diff(dayjs(point.dateFrom))));
+    case SortingType.PRICE:
+      return points.sort((point, nextPoint) => nextPoint.basePrice - point.basePrice);
+  }
+};
 
 const huminazeDate = (date, format) => date ? dayjs(date).format(format) : '';
 
-const areDatesEqual = (dateA, dateB, unit = null) => (dateA === null && dateB === null) || dayjs(dateA).isSame(dateB, unit);
+const areDatesEqual = (dateA, dateB) => (dateA === null && dateB === null) || dayjs(dateA).isSame(dateB);
 
-const getDateDifferenceString = (totalDays, totalHours, totalMinutes) => {
+const getDurationString = (start, end) => {
+  const diff = dayjs(end).diff(dayjs(start));
+  const totalDays = Math.floor(dayjs.duration(diff).asDays());
+  const totalHours = Math.floor(dayjs.duration(diff).asHours()) % 24;
+  const totalMinutes = Math.round(dayjs.duration(diff).asMinutes()) % 60;
+
   if (!totalDays && !totalHours && !totalMinutes) {
     return '';
   }
@@ -60,19 +61,10 @@ const getDateDifferenceString = (totalDays, totalHours, totalMinutes) => {
   return `${days} ${hours} ${minutes}`;
 };
 
-const getDateDifference = (start, end) => {
-  const diff = dayjs(end).diff(dayjs(start));
-  const totalDays = Math.floor(dayjs.duration(diff).asDays());
-  const totalHours = Math.floor(dayjs.duration(diff).asHours()) % 24;
-  const totalMinutes = Math.round(dayjs.duration(diff).asMinutes()) % 60;
-
-  return getDateDifferenceString(totalDays, totalHours, totalMinutes);
-};
-
 const isEscapeKey = (evt) => evt.key === ESCAPE_KEY;
 
 const getRandomInteger = (min, max) => Math.floor(Math.random() * (Math.floor(max) - Math.ceil(min) + 1) + Math.ceil(min));
 
 const getRandomArrElem = (array) => array[Math.floor(Math.random() * array.length)];
 
-export { isEscapeKey, getRandomArrElem, getRandomInteger, FiltersMap, SortingMap, areDatesEqual, getDateDifference, huminazeDate };
+export { isEscapeKey, getRandomArrElem, getRandomInteger, filterData, sortData, areDatesEqual, getDurationString, huminazeDate };

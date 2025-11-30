@@ -15,13 +15,11 @@ const createPointEditFormTemplate = (data, allOffers, allDestinations) => {
   const isNewPoint = id
     ? `
     <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>${isDeleting ? 'Deleting...' : 'Delete'}</button>
-    <button class="event__rollup-btn" type="button" ${isDisabled ? 'disabled' : ''}>
+    <button class="event__rollup-btn" type="button">
       <span class="visually-hidden">Open event</span>
     </button>
     `
-    : `
-      <button class="event__reset-btn" type="reset" ${isDisabled ? 'disabled' : ''}>Cancel</button>
-      `;
+    : '<button class="event__reset-btn" type="reset">Cancel</button>';
 
   const createPointTypesTemplate = () =>
     `
@@ -165,7 +163,7 @@ export default class PointEditFormView extends AbstractStatefulView {
   #dateFromPicker = null;
   #dateToPicker = null;
 
-  constructor({allOffers, allDestinations, point, offers, checkedOffers, destination, onEditFormSubmit, onEditCloseButtonClick, onEditDeleteButtonClick}) {
+  constructor({ allOffers, allDestinations, point, offers, checkedOffers, destination, handleEditFormSubmit, handleEditCloseButtonClick, handleEditDeleteButtonClick}) {
     super();
     this.#allOffers = allOffers;
     this.#allDestinations = allDestinations;
@@ -174,10 +172,14 @@ export default class PointEditFormView extends AbstractStatefulView {
     this.#checkedOffers = checkedOffers;
     this.#destination = destination;
     this._setState(PointEditFormView.parsePointToState(point, offers, checkedOffers, destination));
-    this.#handleEditFormSubmit = onEditFormSubmit;
-    this.#handleEditCloseButtonClick = onEditCloseButtonClick;
-    this.#handleEditDeleteButtonClick = onEditDeleteButtonClick;
+    this.#handleEditFormSubmit = handleEditFormSubmit;
+    this.#handleEditCloseButtonClick = handleEditCloseButtonClick;
+    this.#handleEditDeleteButtonClick = handleEditDeleteButtonClick;
     this._restoreHandlers();
+  }
+
+  get template() {
+    return createPointEditFormTemplate(this._state, this.#allOffers, this.#allDestinations);
   }
 
   _restoreHandlers() {
@@ -196,10 +198,6 @@ export default class PointEditFormView extends AbstractStatefulView {
     }
   }
 
-  get template() {
-    return createPointEditFormTemplate(this._state, this.#allOffers, this.#allDestinations);
-  }
-
   removeElement() {
     super.removeElement();
 
@@ -215,8 +213,30 @@ export default class PointEditFormView extends AbstractStatefulView {
   }
 
   reset() {
-    this.updateElement(
-      PointEditFormView.parsePointToState(this.#point, this.#pointOffers, this.#checkedOffers, this.#destination),
+    this.updateElement(PointEditFormView.parsePointToState(this.#point, this.#pointOffers, this.#checkedOffers, this.#destination));
+  }
+
+  #setDatepickers() {
+    this.#dateFromPicker = flatpickr(
+      this.element.querySelector('input[name="event-start-time"]'),
+      {
+        enableTime: true,
+        'time_24hr': true,
+        dateFormat: 'd/m/y H:i',
+        defaultDate: this._state.dateFrom,
+        onClose: this.#dateFromCloseHandler,
+      },
+    );
+    this.#dateToPicker = flatpickr(
+      this.element.querySelector('input[name="event-end-time"]'),
+      {
+        enableTime: true,
+        'time_24hr': true,
+        dateFormat: 'd/m/y H:i',
+        minDate: this._state.dateFrom,
+        defaultDate: this._state.dateTo,
+        onClose: this.#dateToCloseHandler,
+      },
     );
   }
 
@@ -234,14 +254,13 @@ export default class PointEditFormView extends AbstractStatefulView {
     }
   };
 
-  #editCloseButtonClickHandler = (evt) => {
-    evt.preventDefault();
-    this.reset(this.#point, this.#pointOffers, this.#checkedOffers, this.#destination);
-    this.#handleEditCloseButtonClick();
+  #editCloseButtonClickHandler = () => {
+    if(this.element.parentElement) {
+      this.#handleEditCloseButtonClick();
+    }
   };
 
-  #editDeleteButtonClickHandler = (evt) => {
-    evt.preventDefault();
+  #editDeleteButtonClickHandler = () => {
     this.#handleEditDeleteButtonClick(PointEditFormView.parseStateToPoint(this._state));
   };
 
@@ -303,30 +322,6 @@ export default class PointEditFormView extends AbstractStatefulView {
       dateTo: userDate,
     });
   };
-
-  #setDatepickers() {
-    this.#dateFromPicker = flatpickr(
-      this.element.querySelector('input[name="event-start-time"]'),
-      {
-        enableTime: true,
-        'time_24hr': true,
-        dateFormat: 'd/m/y H:i',
-        defaultDate: this._state.dateFrom,
-        onClose: this.#dateFromCloseHandler,
-      },
-    );
-    this.#dateToPicker = flatpickr(
-      this.element.querySelector('input[name="event-end-time"]'),
-      {
-        enableTime: true,
-        'time_24hr': true,
-        dateFormat: 'd/m/y H:i',
-        minDate: this._state.dateFrom,
-        defaultDate: this._state.dateTo,
-        onClose: this.#dateToCloseHandler,
-      },
-    );
-  }
 
   static parsePointToState(point, offersByType, checkedOffers, destination) {
     return {

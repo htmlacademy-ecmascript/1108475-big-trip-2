@@ -31,6 +31,13 @@ const FilterType = {
   PAST: 'past',
 };
 
+const FilterEmptyMap = new Map([
+  [FilterType.EVERYTHING, 'Click New Event to create your first point'],
+  [FilterType.FUTURE, 'There are no future events now'],
+  [FilterType.PRESENT, 'There are no present events now'],
+  [FilterType.PAST, 'There are no past events now'],
+]);
+
 const SortingType = {
   DAY: 'sort-day',
   TIME: 'sort-time',
@@ -59,7 +66,7 @@ const Method = {
 };
 
 const BlockerTimeLimit = {
-  LOWER_LIMIT: 250,
+  LOWER_LIMIT: 150,
   UPPER_LIMIT: 1000,
 };
 
@@ -68,4 +75,4 @@ const ESCAPE_KEY = 'Escape';
 const AUTHORIZATION = 'Basic b8s72e4kt35wg9f';
 const END_POINT = 'https://22.objects.htmlacademy.pro/big-trip';
 
-export { BLANK_POINT, BLANK_DESTINATION, DateFormat, FilterType, SortingType, UserAction, UpdateType, Method, BlockerTimeLimit, ESCAPE_KEY, AUTHORIZATION, END_POINT };
+export { BLANK_POINT, BLANK_DESTINATION, DateFormat, FilterType, FilterEmptyMap, SortingType, UserAction, UpdateType, Method, BlockerTimeLimit, ESCAPE_KEY, AUTHORIZATION, END_POINT };
