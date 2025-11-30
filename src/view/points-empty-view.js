@@ -1,10 +1,10 @@
 import AbstractView from '../framework/view/abstract-view.js';
-import { FiltersMap } from '../util.js';
+import { FilterEmptyMap } from '../const.js';
 
 
-const createPointsEmptyTemplate = (filterType) =>
+const createPointsEmptyTemplate = (filterValue) =>
   `
-  <p class="trip-events__msg">${FiltersMap.get(filterType).empty}</p>
+  <p class="trip-events__msg">${FilterEmptyMap.get(filterValue)}</p>
   `;
 
 export default class PointsEmptyView extends AbstractView {

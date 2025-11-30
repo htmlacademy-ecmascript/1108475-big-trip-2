@@ -1,6 +1,6 @@
 import { render, replace, remove, RenderPosition } from '../framework/render.js';
 import { FilterType, SortingType, UserAction, UpdateType, BlockerTimeLimit } from '../const.js';
-import { SortingMap, FiltersMap } from '../util.js';
+import { sortData, filterData } from '../util.js';
 import NewPointButtonView from '../view/new-point-button-view.js';
 import SortingView from '../view/sorting-view.js';
 import PointsListView from '../view/points-list-view.js';
@@ -11,7 +11,7 @@ import PointPresenter from './point-presenter.js';
 import NewPointPresenter from './new-point-presenter.js';
 import UiBlocker from '../framework/ui-blocker/ui-blocker.js';
 
-export default class Presenter {
+export default class BoardPresenter {
   #mainContainer = null;
   #pointsContainer = null;
   #pointsModel = null;
@@ -45,15 +45,15 @@ export default class Presenter {
   get points() {
     this.#filter = this.#filtersModel.filter;
     const points = this.#pointsModel.points;
-    const filteredPoints = FiltersMap.get(this.#filter).filterPoints(points);
+    const filteredPoints = filterData(this.#filter, points);
 
     switch (this.#sorting) {
       case SortingType.TIME:
-        return SortingMap.get(SortingType.TIME)([...filteredPoints]);
+        return sortData(SortingType.TIME, [...filteredPoints]);
       case SortingType.PRICE:
-        return SortingMap.get(SortingType.PRICE)([...filteredPoints]);
+        return sortData(SortingType.PRICE, [...filteredPoints]);
       default:
-        return SortingMap.get(SortingType.DAY)([...filteredPoints]);
+        return sortData(SortingType.DAY, [...filteredPoints]);
     }
   }
 
@@ -79,6 +79,61 @@ export default class Presenter {
     render(this.#pointsListComponent, this.#pointsContainer);
     this.#renderPoints(points);
   }
+
+  #renderLoading() {
+    render(this.#loadingComponent, this.#pointsContainer, RenderPosition.AFTERBEGIN);
+  }
+
+  #renderPointsEmpty() {
+    this.#pointsEmptyComponent = new PointsEmptyView(this.#filter);
+    render(this.#pointsEmptyComponent, this.#pointsContainer);
+  }
+
+  #renderSort() {
+    this.#sortComponent = new SortingView(this.#handleSortingChange, this.#sorting);
+    render(this.#sortComponent, this.#pointsContainer, RenderPosition.AFTERBEGIN);
+  }
+
+  #renderPoints(points) {
+    points.forEach((point) => this.#renderPoint(point));
+  }
+
+  #renderPoint(point) {
+
+    const pointPresenter = new PointPresenter(this.#pointsListComponent.element, this.#handleViewAction, this.#resetPointsEditing, this.#allOffers, this.#allDestinations);
+
+    pointPresenter.init(point);
+    this.#pointPresenters.set(point.id, pointPresenter);
+  }
+
+  #clearBoard({ resetSorting = false } = {}) {
+    this.#newPointPresenter.destroy();
+    this.#pointPresenters.forEach((presenter) => presenter.clear());
+    this.#pointPresenters.clear();
+
+    remove(this.#sortComponent);
+    remove(this.#pointsEmptyComponent);
+    remove(this.#loadingComponent);
+
+    if (!this.points.length) {
+      remove(this.#pointsListComponent);
+    }
+
+    if (resetSorting) {
+      this.#sorting = SortingType.DAY;
+    }
+  }
+
+  #resetPointsEditing = () => {
+    this.#newPointPresenter.destroy();
+    this.#pointPresenters.forEach((presenter) => presenter.resetEditing());
+  };
+
+  #handleSortingChange = (sortingType) => {
+    this.#sorting = sortingType;
+    this.#clearBoard();
+    this.#renderBoard();
+  };
 
   #handleViewAction = async (actionType, updateType, update) => {
     this.#uiBlocker.block();
@@ -157,59 +212,4 @@ export default class Presenter {
     }
   };
 
-  #onSortingChange = (sortingType) => {
-    this.#sorting = sortingType;
-    this.#clearBoard();
-    this.#renderBoard();
-  };
-
-  #resetPointsEditing = () => {
-    this.#newPointPresenter.destroy();
-    this.#pointPresenters.forEach((presenter) => presenter.resetEditing());
-  };
-
-  #renderSort() {
-    this.#sortComponent = new SortingView(this.#onSortingChange, this.#sorting);
-    render(this.#sortComponent, this.#pointsContainer, RenderPosition.AFTERBEGIN);
-  }
-
-
-  #renderPointsEmpty() {
-    this.#pointsEmptyComponent = new PointsEmptyView(this.#filter);
-    render(this.#pointsEmptyComponent, this.#pointsContainer);
-  }
-
-  #renderLoading() {
-    render(this.#loadingComponent, this.#pointsContainer, RenderPosition.AFTERBEGIN);
-  }
-
-  #clearBoard({ resetSorting = false } = {}) {
-    this.#newPointPresenter.destroy();
-    this.#pointPresenters.forEach((presenter) => presenter.clear());
-    this.#pointPresenters.clear();
-
-    remove(this.#sortComponent);
-    remove(this.#pointsEmptyComponent);
-    remove(this.#loadingComponent);
-
-    if (!this.points.length) {
-      remove(this.#pointsListComponent);
-    }
-
-    if (resetSorting) {
-      this.#sorting = SortingType.DAY;
-    }
-  }
-
-  #renderPoints(points) {
-    points.forEach((point) => this.#renderPoint(point));
-  }
-
-  #renderPoint(point) {
-
-    const pointPresenter = new PointPresenter(this.#pointsListComponent.element, this.#handleViewAction, this.#resetPointsEditing, this.#allOffers, this.#allDestinations);
-
-    pointPresenter.init(point);
-    this.#pointPresenters.set(point.id, pointPresenter);
-  }
 }

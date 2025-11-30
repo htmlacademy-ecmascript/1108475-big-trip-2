@@ -1,6 +1,6 @@
 import { render, replace, remove, RenderPosition } from '../framework/render.js';
 import TripInfoView from '../view/trip-info-view.js';
-import { SortingMap } from '../util.js';
+import { sortData } from '../util.js';
 import { SortingType } from '../const.js';
 
 export default class TripInfoPresenter {
@@ -21,7 +21,7 @@ export default class TripInfoPresenter {
   }
 
   get points() {
-    return SortingMap.get(SortingType.DAY)([...this.#pointsModel.points]);
+    return sortData(SortingType.DAY, [...this.#pointsModel.points]);
   }
 
   get offers() {

@@ -1,6 +1,6 @@
 import AbstractView from '../framework/view/abstract-view.js';
 import { DateFormat } from '../const.js';
-import { areDatesEqual, huminazeDate } from '../util.js';
+import { huminazeDate } from '../util.js';
 
 
 const createTripInfoTemplate = (points, tripTotalCost, tripDestinations) => {
@@ -30,18 +30,12 @@ const createTripInfoTemplate = (points, tripTotalCost, tripDestinations) => {
     }
   };
 
-  const tripDatesText = areDatesEqual(firstPoint.dateFrom, lastPoint.dateTo, 'month')
-    ?
-    `${huminazeDate(firstPoint.dateFrom, DateFormat.DAY)} &nbsp;&mdash;&nbsp;${huminazeDate(lastPoint.dateTo, DateFormat.DAY_MONTH)}`
-    :
-    `${huminazeDate(firstPoint.dateFrom, DateFormat.DAY_MONTH)} &nbsp;&mdash;&nbsp;${huminazeDate(lastPoint.dateTo, DateFormat.DAY_MONTH)}`;
-
   return (
     `
     <section class="trip-main__trip-info  trip-info">
       <div class="trip-info__main">
         <h1 class="trip-info__title">${createTripDestinationsTemplate()}</h1>
-        <p class="trip-info__dates">${tripDatesText}</p>
+        <p class="trip-info__dates">${huminazeDate(firstPoint.dateFrom, DateFormat.DAY_MONTH)} &nbsp;&mdash;&nbsp;${huminazeDate(lastPoint.dateTo, DateFormat.DAY_MONTH)}</p>
       </div>
 
       <p class="trip-info__cost">
