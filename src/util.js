@@ -63,8 +63,4 @@ const getDurationString = (start, end) => {
 
 const isEscapeKey = (evt) => evt.key === ESCAPE_KEY;
 
-const getRandomInteger = (min, max) => Math.floor(Math.random() * (Math.floor(max) - Math.ceil(min) + 1) + Math.ceil(min));
-
-const getRandomArrElem = (array) => array[Math.floor(Math.random() * array.length)];
-
-export { isEscapeKey, getRandomArrElem, getRandomInteger, filterData, sortData, areDatesEqual, getDurationString, huminazeDate };
+export { isEscapeKey, filterData, sortData, areDatesEqual, getDurationString, huminazeDate };
